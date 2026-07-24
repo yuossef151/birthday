@@ -103,29 +103,29 @@ export default function App() {
   if (!nearestBirthday) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-purple-950 via-indigo-900 to-pink-900 flex flex-col items-center justify-center p-5 text-white overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-tr from-purple-950 via-indigo-900 to-pink-900 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 text-white overflow-x-hidden relative">
       
-      {/* خلفية مضيئة */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-pink-500/30 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      {/* خلفية مضيئة متجاوبة */}
+      <div className="absolute -top-20 -left-20 sm:-top-40 sm:-left-40 w-72 h-72 sm:w-96 sm:h-96 bg-pink-500/30 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
+      <div className="absolute -bottom-20 -right-20 sm:-bottom-40 sm:-right-40 w-72 h-72 sm:w-96 sm:h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none"></div>
 
-      {/* الكارد الرئيسي */}
-      <div className="relative bg-white/15 backdrop-blur-xl border border-white/30 p-8 sm:p-12 rounded-[2.5rem] shadow-[0_0_50px_rgba(255,105,180,0.3)] max-w-xl w-full text-center space-y-6 z-10">
+      {/* الكارد الرئيسي المتجاوب */}
+      <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_0_40px_rgba(255,105,180,0.2)] max-w-lg w-full text-center space-y-6 z-10 mx-4">
         
         {isBirthdayToday ? (
           <>
             <div className="flex justify-center animate-bounce">
-              <div className="p-4 bg-yellow-400/25 rounded-full border border-yellow-300/50 shadow-lg">
-                <FaBirthdayCake className="text-yellow-300 w-20 h-20" />
+              <div className="p-3 sm:p-4 bg-yellow-400/25 rounded-full border border-yellow-300/50 shadow-lg">
+                <FaBirthdayCake className="text-yellow-300 w-14 h-14 sm:w-20 sm:h-20" />
               </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-wider bg-gradient-to-r from-yellow-200 via-pink-300 to-white bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-wider bg-gradient-to-r from-yellow-200 via-pink-300 to-white bg-clip-text text-transparent leading-relaxed py-1">
               Happy Birthday, {nearestBirthday.name}! 🎉
             </h1>
-            <p className="text-lg text-pink-100 font-medium">
+            <p className="text-sm sm:text-lg text-pink-100 font-medium leading-relaxed">
               النهارده أجمـل يوم في السنة لأنه عيد ميلادك! نتمنى لك سنة مليانة سعادة وتحقيق لكل أحلامك. 🎂✨
             </p>
-            <div className="pt-2 flex justify-center gap-6 text-3xl">
+            <div className="pt-2 flex justify-center gap-6 text-2xl sm:text-3xl">
               <FaHeart className="text-red-400 animate-pulse" />
               <FaGift className="text-yellow-300 animate-bounce" />
               <FaHeart className="text-red-400 animate-pulse" />
@@ -134,33 +134,34 @@ export default function App() {
         ) : (
           <>
             <div className="flex justify-center">
-              <div className="p-4 bg-pink-500/20 rounded-full border border-pink-400/40 animate-pulse">
-                <FaGift className="text-pink-300 w-16 h-16" />
+              <div className="p-3 sm:p-4 bg-pink-500/20 rounded-full border border-pink-400/40 animate-pulse">
+                <FaGift className="text-pink-300 w-12 h-12 sm:w-16 sm:h-16" />
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wide text-pink-200">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-wide text-pink-200">
               قريباً عيد ميلاد {nearestBirthday.name} ⏳
             </h1>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-300 text-xs sm:text-sm">
                العد التنازلي لعيد ميلاد {nearestBirthday.name} القادم {nearestBirthday.day} / {nearestBirthday.month} : 
             </p>
             
-            <div className="grid grid-cols-4 gap-3 py-4">
+            {/* مربعات العد التنازلي المتجاوبة */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2">
               <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
                 <span className="text-2xl sm:text-3xl font-black text-yellow-300 block">{timeLeft.days}</span>
-                <span className="text-xs uppercase text-pink-200 block">يوم</span>
+                <span className="text-xs uppercase text-pink-200 block mt-1">يوم</span>
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
                 <span className="text-2xl sm:text-3xl font-black text-pink-300 block">{timeLeft.hours}</span>
-                <span className="text-xs uppercase text-pink-200 block">ساعة</span>
+                <span className="text-xs uppercase text-pink-200 block mt-1">ساعة</span>
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
                 <span className="text-2xl sm:text-3xl font-black text-purple-300 block">{timeLeft.minutes}</span>
-                <span className="text-xs uppercase text-pink-200 block">دقيقة</span>
+                <span className="text-xs uppercase text-pink-200 block mt-1">دقيقة</span>
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
                 <span className="text-2xl sm:text-3xl font-black text-blue-300 block">{timeLeft.seconds}</span>
-                <span className="text-xs uppercase text-pink-200 block">ثانية</span>
+                <span className="text-xs uppercase text-pink-200 block mt-1">ثانية</span>
               </div>
             </div>
           </>

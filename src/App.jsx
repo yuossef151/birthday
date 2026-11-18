@@ -16,7 +16,7 @@ export default function App() {
   const birthdaysList = [
     { name: "مودة", month: 7, day: 25 },
     { name: "حذيفه", month: 12, day: 10 },
-    { name: "هدايه", month: 11, day: 18 },
+    { name: "هدايه", month: 11, day: 20 },
     { name: "نور", month: 8, day: 20 },
     { name: " امي الغاليه", month: 4, day: 3 },
     { name: "بابا الغالي", month: 2, day: 16 },

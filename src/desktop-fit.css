@@ -1,0 +1,149 @@
+/* desktop-fit.css
+   لازم يتحمل بعد App.css (الاستيراد موجود في App.jsx).
+   على الموبايل والتابلت مفيش أي تغيير، وبيشتغل بس على الشاشات من 1024px وأكبر. */
+
+/* على الشاشات الصغيرة الغلافين دول مش بيعملوا صندوق، فالشكل القديم زي ما هو */
+.card-visual,
+.card-body {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  /* مفيش اسكرول خالص */
+  html,
+  body,
+  #root {
+    height: 100%;
+    /* overflow: hidden; */
+  }
+
+  .birthday-app {
+    /* height: 100dvh !important; */
+    min-height: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  /* الحاوية: بتتصغّر تلقائيًا (--fit-scale من الـ JS) لحد ما تدخل الشاشة كلها */
+  .birthday-app .birthday-container {
+    box-sizing: border-box !important;
+    
+    width: min(1040px, 100%) !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin:30px 0 !important;
+    padding: 10px 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.25rem !important;
+    transform: scale(var(--fit-scale, 1));
+    transform-origin: center center;
+  }
+
+  /* الهيدر: مضغوط */
+  .birthday-app .birthday-header {
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    text-align: center !important;
+  }
+
+  .birthday-app .birthday-header h1 {
+    margin: 0 !important;
+    font-size: clamp(2rem, 3.4vw, 3rem) !important;
+    line-height: 1.1 !important;
+  }
+
+  /* "Birthday Countdown" في سطر واحد بدل سطرين */
+  .birthday-app .title-highlight {
+    display: inline !important;
+    margin-left: 0.35em !important;
+  }
+
+  .birthday-app .header-description {
+    margin: 0 !important;
+    max-width: 560px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* الكارت: عمودين، الرسمة على الشمال والمحتوى على اليمين */
+  .birthday-app .birthday-card {
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) !important;
+    align-items: center !important;
+    column-gap: 3rem !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 20px 2.5rem !important;
+  }
+
+  .birthday-app .card-visual {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0;
+  }
+
+  .birthday-app .card-visual .illustration-wrapper {
+    margin: 0 !important;
+  }
+
+  .birthday-app .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.1rem !important;
+    min-width: 0;
+    text-align: center;
+  }
+
+  /* المسافات بتيجي من gap بس */
+  .birthday-app .card-body > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* العد التنازلي: الأربع مربعات في صف واحد داخل العمود */
+  .birthday-app .countdown-timer {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .birthday-app .time-box {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  .birthday-app .time-separator {
+    flex: 0 0 auto !important;
+  }
+
+  .birthday-app .birthday-footer {
+    margin: 0 !important;
+  }
+}
+
+/* شاشات لاب قصيرة: نشيل الوصف عشان الباقي يفضل كبير وواضح */
+@media (min-width: 1024px) and (max-height: 720px) {
+  .birthday-app .header-description {
+    display: none !important;
+  }
+}

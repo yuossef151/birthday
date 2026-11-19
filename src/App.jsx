@@ -1,228 +1,398 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-import React, { useState, useEffect, useRef } from "react";
-import { FaHeart, FaBirthdayCake, FaGift, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
-import confetti from "canvas-confetti";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
+import {
+  FaHeart,
+  FaBirthdayCake,
+  FaVolumeUp,
+  FaVolumeMute,
+  FaStar,
+} from "react-icons/fa";
+import "./App.css";
+import "./desktop-fit.css"; // لازم يكون بعد App.css
+import Confetti from "react-confetti";
+
+const birthdays = [
+  { name: "مودة", month: 7, day: 25 },
+  { name: "حذيفه", month: 12, day: 10 },
+  { name: "هدايه", month: 11, day: 20 },
+  { name: "نور", month: 8, day: 20 },
+  { name: "امي الغاليه", month: 4, day: 3 },
+  { name: "بابا الغالي", month: 2, day: 16 },
+  { name: "يوسف", month: 9, day: 19 },
+];
+
+function getNextBirthday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let nextBirthday = null;
+  let minDiff = Infinity;
+
+  for (const person of birthdays) {
+    let date = new Date(today.getFullYear(), person.month - 1, person.day);
+    date.setHours(0, 0, 0, 0);
+
+    if (date < today) {
+      date = new Date(today.getFullYear() + 1, person.month - 1, person.day);
+    }
+
+    const diff = date.getTime() - today.getTime();
+
+    if (diff < minDiff) {
+      minDiff = diff;
+      nextBirthday = { ...person, date };
+    }
+  }
+
+  return nextBirthday;
+}
+
+function getBirthdayToday() {
+  const today = new Date();
+
+  return birthdays.find(
+    (person) =>
+      person.month === today.getMonth() + 1 &&
+      person.day === today.getDate()
+  );
+}
+
+function calculateTimeLeft(targetDate) {
+  const now = new Date();
+  const difference = targetDate.getTime() - now.getTime();
+
+  if (difference <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
+
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((difference / (1000 * 60)) % 60),
+    seconds: Math.floor((difference / 1000) % 60),
+  };
+}
+
+function CakeAnimation() {
+  return (
+    <div className="animated-cake-container">
+      <div className="cake-shadow" />
+
+      <div className="cake">
+        {/* Base */}
+        <div className="cake-base cake-tier">
+          <div className="cake-icing">
+            <span className="icing-drip drip-1" />
+            <span className="icing-drip drip-2" />
+            <span className="icing-drip drip-3" />
+            <span className="icing-drip drip-4" />
+            <span className="icing-drip drip-5" />
+          </div>
+
+          <div className="cake-sprinkles">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Middle tier */}
+        <div className="cake-middle cake-tier">
+          <div className="cake-icing">
+            <span className="icing-drip drip-1" />
+            <span className="icing-drip drip-2" />
+            <span className="icing-drip drip-3" />
+            <span className="icing-drip drip-4" />
+          </div>
+
+          <div className="cake-sprinkles">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Top tier */}
+        <div className="cake-top cake-tier">
+          <div className="cake-icing">
+            <span className="icing-drip drip-1" />
+            <span className="icing-drip drip-2" />
+            <span className="icing-drip drip-3" />
+          </div>
+
+          <div className="cake-sprinkles">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* 3 Candles */}
+        <div className="cake-candles">
+          {[0, 1, 2].map((candle) => (
+            <div className={`cake-candle candle-${candle + 1}`} key={candle}>
+              <div className="candle-flame" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [targetPerson, setTargetPerson] = useState(null);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
   const [isBirthdayToday, setIsBirthdayToday] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // على شاشات اللاب والـ PC: بنصغّر المحتوى تلقائيًا لحد ما يظهر كله في الشاشة من غير اسكرول
+  const containerRef = useRef(null);
+  const [fitScale, setFitScale] = useState(1);
+
   const audioRef = useRef(null);
 
-  const birthdaysList = [
-    { name: "مودة", month: 7, day: 25 },
-    { name: "حذيفه", month: 12, day: 10 },
-    { name: "هدايه", month: 11, day: 20 },
-    { name: "نور", month: 8, day: 20 },
-    { name: " امي الغاليه", month: 4, day: 3 },
-    { name: "بابا الغالي", month: 2, day: 16 },
-    { name: "يوسف", month: 9, day: 19 },
-  ];
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const desktop = window.matchMedia("(min-width: 1024px)");
+
+    const fit = () => {
+      if (!desktop.matches) {
+        setFitScale(1); // الموبايل والتابلت: الصفحة عادية (ممكن تتسكرول)
+        return;
+      }
+      const margin = 32;
+      const scaleX = (window.innerWidth - margin) / el.offsetWidth;
+      const scaleY = (window.innerHeight - margin) / el.offsetHeight;
+      setFitScale(Math.min(1.15, scaleX, scaleY));
+    };
+
+    fit();
+
+    // الحجم بيتغير لما تتغير الشاشة (عد تنازلي / يوم عيد الميلاد) أو لما الخطوط تتحمل
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    window.addEventListener("resize", fit);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, []);
 
   useEffect(() => {
-    const checkBirthdays = () => {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentDay = now.getDate();
-      const currentYear = now.getFullYear();
+    const todayBirthday = getBirthdayToday();
 
-      const todayBirthdayPerson = birthdaysList.find(
-        (person) => person.month === currentMonth && person.day === currentDay
-      );
+    if (todayBirthday) {
+      setTargetPerson(todayBirthday);
+      setIsBirthdayToday(true);
+    } else {
+      setTargetPerson(getNextBirthday());
+      setIsBirthdayToday(false);
+    }
 
-      if (todayBirthdayPerson) {
+    const updateCountdown = () => {
+      const birthdayToday = getBirthdayToday();
+
+      if (birthdayToday) {
+        setTargetPerson(birthdayToday);
         setIsBirthdayToday(true);
-        setTargetPerson(todayBirthdayPerson);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         return;
       }
 
+      const next = getNextBirthday();
+
+      setTargetPerson(next);
       setIsBirthdayToday(false);
-      let closest = null;
-      let minDifference = Infinity;
 
-      birthdaysList.forEach((person) => {
-        let birthdayDate = new Date(currentYear, person.month - 1, person.day);
-
-        if (birthdayDate < now) {
-          birthdayDate = new Date(currentYear + 1, person.month - 1, person.day);
-        }
-
-        const difference = birthdayDate - now;
-
-        if (difference > 0 && difference < minDifference) {
-          minDifference = difference;
-          closest = person;
-        }
-      });
-
-      setTargetPerson(closest);
-
-      if (closest) {
-        let birthday = new Date(currentYear, closest.month - 1, closest.day);
-        if (now > birthday) {
-          birthday = new Date(currentYear + 1, closest.month - 1, closest.day);
-        }
-
-        const difference = birthday - now;
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((difference / 1000 / 60) % 60);
-        const seconds = Math.floor((difference / 1000) % 60);
-
-        setTimeLeft({ days, hours, minutes, seconds });
+      if (next) {
+        setTimeLeft(calculateTimeLeft(next.date));
       }
     };
 
-    checkBirthdays();
-    const timer = setInterval(checkBirthdays, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    updateCountdown();
 
-  // الألعاب النارية
-  useEffect(() => {
-    if (!isBirthdayToday) return;
-
-    const interval = setInterval(() => {
-      confetti({
-        particleCount: 100,
-        spread: 160,
-        startVelocity: 50,
-        origin: { x: Math.random(), y: Math.random() * 0.7 },
-        colors: ['#ff007f', '#ffd700', '#ff4d4d', '#ffffff', '#da70d6', '#00ffff'],
-      });
-    }, 800);
+    const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [isBirthdayToday]);
+  }, []);
 
-  // محاولة تشغيل الصوت مع أول تفاعل للمستخدم
-  useEffect(() => {
-    if (!isBirthdayToday) return;
-
-    const handleUserInteraction = () => {
-      if (audioRef.current) {
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch(e => console.log("Audio play error:", e));
-      }
-      window.removeEventListener('click', handleUserInteraction);
-      window.removeEventListener('touchstart', handleUserInteraction);
-    };
-
-    window.addEventListener('click', handleUserInteraction);
-    window.addEventListener('touchstart', handleUserInteraction);
-
-    return () => {
-      window.removeEventListener('click', handleUserInteraction);
-      window.removeEventListener('touchstart', handleUserInteraction);
-    };
-  }, [isBirthdayToday]);
-
-  // دالة التحكم في تشغيل/إيقاف الصوت من الزر داخل البطاقة
-  const toggleAudio = () => {
+  const toggleMusic = async () => {
     if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().then(() => {
+
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
         setIsPlaying(true);
-      }).catch(e => console.log("Audio play error:", e));
+      }
+    } catch (error) {
+      console.error("Audio playback failed:", error);
     }
   };
 
-  if (!targetPerson) return null;
+  const formatNumber = (number) => String(number).padStart(2, "0");
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-purple-950 via-indigo-900 to-pink-900 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 text-white overflow-x-hidden relative">
-      
-      {isBirthdayToday && (
-        <audio ref={audioRef} loop src="Happy.aac" />
-      )}
+    <main className="birthday-app h-full" style={{ "--fit-scale": fitScale }}>
+      {isBirthdayToday && <Confetti recycle numberOfPieces={180} />}
 
-      <div className="absolute -top-20 -left-20 sm:-top-40 sm:-left-40 w-72 h-72 sm:w-96 sm:h-96 bg-pink-500/30 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
-      <div className="absolute -bottom-20 -right-20 sm:-bottom-40 sm:-right-40 w-72 h-72 sm:w-96 sm:h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none"></div>
+      {/* BASE_URL بيخلي الملف يشتغل صح حتى لو الموقع على GitHub Pages تحت مسار فرعي */}
+      <audio
+        ref={audioRef}
+        src={`${import.meta.env.BASE_URL}Happy.aac`}
+        loop
+        onEnded={() => setIsPlaying(false)}
+      />
 
-      <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_0_40px_rgba(255,105,180,0.2)] max-w-lg w-full text-center space-y-6 z-10 mx-4">
-        
-        {isBirthdayToday ? (
-          <>
-            <div className="flex justify-center animate-bounce">
-              <div className="p-3 sm:p-4 bg-yellow-400/25 rounded-full border border-yellow-300/50 shadow-lg">
-                <FaBirthdayCake className="text-yellow-300 w-14 h-14 sm:w-20 sm:h-20" />
-              </div>
-            </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-wider bg-gradient-to-r from-yellow-200 via-pink-300 to-white bg-clip-text text-transparent leading-relaxed py-1">
-              Happy Birthday, {targetPerson.name}! 🎉
-            </h1>
-            <p className="text-sm sm:text-lg text-pink-100 font-medium leading-relaxed">
-              النهارده أجمـل يوم في السنة لأنه عيد ميلادك! نتمنى لك سنة مليانة سعادة وتحقيق لكل أحلامك. 🎂✨
-            </p>
-            
-            {/* زر تشغيل وإيقاف الصوت داخل البطاقة */}
-            <div className="pt-2 flex items-center justify-center gap-6">
-              <FaHeart className="text-red-400 animate-pulse text-2xl sm:text-3xl" />
-              
-              <button
-                onClick={toggleAudio}
-                className="bg-white/20 hover:bg-white/30 border border-white/30 px-5 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2 text-yellow-300 font-medium text-sm sm:text-base cursor-pointer"
-              >
-                {isPlaying ? (
-                  <>
-                    <FaVolumeUp className="text-xl animate-bounce" />
-                    <span>إيقاف الموسيقى</span>
-                  </>
-                ) : (
-                  <>
-                    <FaVolumeMute className="text-xl text-gray-300" />
-                    <span>تشغيل الموسيقى</span>
-                  </>
-                )}
-              </button>
-
-              <FaHeart className="text-red-400 animate-pulse text-2xl sm:text-3xl" />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex justify-center">
-              <div className="p-3 sm:p-4 bg-pink-500/20 rounded-full border border-pink-400/40 animate-pulse">
-                <FaGift className="text-pink-300 w-12 h-12 sm:w-16 sm:h-16" />
-              </div>
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-wide text-pink-200">
-              قريباً عيد ميلاد {targetPerson.name} ⏳
-            </h1>
-            <p className="text-gray-300 text-xs sm:text-sm">
-               العد التنازلي لعيد ميلاد {targetPerson.name} القادم {targetPerson.day} / {targetPerson.month} : 
-            </p>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
-                <span className="text-2xl sm:text-3xl font-black text-yellow-300 block">{timeLeft.days}</span>
-                <span className="text-xs uppercase text-pink-200 block mt-1">يوم</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
-                <span className="text-2xl sm:text-3xl font-black text-pink-300 block">{timeLeft.hours}</span>
-                <span className="text-xs uppercase text-pink-200 block mt-1">ساعة</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
-                <span className="text-2xl sm:text-3xl font-black text-purple-300 block">{timeLeft.minutes}</span>
-                <span className="text-xs uppercase text-pink-200 block mt-1">دقيقة</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl">
-                <span className="text-2xl sm:text-3xl font-black text-blue-300 block">{timeLeft.seconds}</span>
-                <span className="text-xs uppercase text-pink-200 block mt-1">ثانية</span>
-              </div>
-            </div>
-          </>
-        )}
-
+      <div className="background-decor decor-1">
+        <FaStar />
       </div>
-    </div>
+      <div className="background-decor decor-2">
+        <FaStar />
+      </div>
+      <div className="background-decor decor-3">
+        <FaHeart />
+      </div>
+      <div className="background-decor decor-4">
+        <FaHeart />
+      </div>
+
+      <div className="birthday-container" ref={containerRef}>
+        {/* <header className="birthday-header">
+          <span className="eyebrow">
+            <FaHeart /> A SPECIAL DAY <FaHeart />
+          </span>
+
+          <h1>
+            Birthday
+            <span className="title-highlight">Countdown</span>
+          </h1>
+
+          <p className="header-description">
+            Counting down to a day filled with happiness, love and beautiful
+            memories.
+          </p>
+        </header> */}
+
+        <section className="birthday-card">
+          {/* العمود الأول: الرسمة / التورتة */}
+          <div className="card-visual">
+            <div className="illustration-wrapper">
+              {isBirthdayToday ? (
+                <CakeAnimation />
+              ) : (
+                <div className="cake-illustration">
+                  <div className="cake-icon">
+                    <FaBirthdayCake />
+                  </div>
+                  <div className="cake-decoration decoration-left">
+                    <FaStar />
+                  </div>
+                  <div className="cake-decoration decoration-right">
+                    <FaHeart />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* العمود التاني: الاسم والعد التنازلي وزرار الموسيقى */}
+          <div className="card-body">
+            {isBirthdayToday ? (
+              <div className="celebration-content">
+                <span className="celebration-tag">
+                  <FaStar /> TODAY IS THE DAY <FaStar />
+                </span>
+
+                <h2 className="birthday-name">
+                  Happy Birthday <span>{targetPerson?.name}</span>!
+                </h2>
+
+                <p className="birthday-message">
+                  Today is all about you! May your day be filled with love,
+                  laughter, sweet surprises and endless happiness.
+                </p>
+
+                <div className="birthday-heart">
+                  <FaHeart />
+                  <FaHeart />
+                  <FaHeart />
+                </div>
+                            <button
+              className={`music-button ${isPlaying ? "music-playing" : ""}`}
+              onClick={toggleMusic}
+            >
+              {isPlaying ? <FaVolumeUp /> : <FaVolumeMute />}
+              {isPlaying ? "Pause Music" : "Play Birthday Music"}
+            </button>
+              </div>
+              
+            ) : (
+              <>
+                <div className="countdown-content">
+                  <span className="countdown-label">NEXT BIRTHDAY</span>
+
+                  <h2 className="birthday-name">
+                    {targetPerson?.name || "..."}
+                  </h2>
+
+                  <p className="countdown-subtitle">
+                    The big day is getting closer!
+                  </p>
+                </div>
+
+                <div className="countdown-timer">
+                  <div className="time-box">
+                    <span className="time-number">
+                      {formatNumber(timeLeft.days)}
+                    </span>
+                    <span className="time-label">Days</span>
+                  </div>
+
+                  <div className="time-separator">:</div>
+
+                  <div className="time-box">
+                    <span className="time-number">
+                      {formatNumber(timeLeft.hours)}
+                    </span>
+                    <span className="time-label">Hours</span>
+                  </div>
+
+                  <div className="time-separator">:</div>
+
+                  <div className="time-box">
+                    <span className="time-number">
+                      {formatNumber(timeLeft.minutes)}
+                    </span>
+                    <span className="time-label">Minutes</span>
+                  </div>
+
+                  <div className="time-separator">:</div>
+
+                  <div className="time-box">
+                    <span className="time-number">
+                      {formatNumber(timeLeft.seconds)}
+                    </span>
+                    <span className="time-label">Seconds</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
